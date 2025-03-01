@@ -91,6 +91,11 @@
             border-color: #3498db;
         }
         
+        .button-group button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
         .service-description {
             font-size: 0.85em;
             color: #6c757d;
@@ -128,6 +133,16 @@
         #confirmation h2 {
             color: #155724;
             margin-bottom: 10px;
+        }
+        
+        .availability-note {
+            color: #856404;
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 14px;
         }
         
         /* Responsive styles */
@@ -176,6 +191,16 @@
                 grid-template-columns: 1fr;
             }
         }
+        
+        #debug-info {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -206,6 +231,9 @@
                     <button type="button" data-value="Johnny">Johnny</button>
                     <button type="button" data-value="Michael">Michael</button>
                     <button type="button" data-value="Yesinia">Yesinia</button>
+                </div>
+                <div id="barberAvailabilityNote" class="availability-note" style="display: none;">
+                    Note: Yesinia is only available on Saturdays.
                 </div>
                 <input type="hidden" id="barber" name="barber" required>
             </div>
@@ -251,6 +279,8 @@
         <h2>Appointment Confirmed!</h2>
         <p id="confirmationMessage"></p>
     </div>
+    
+    <div id="debug-info"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -269,11 +299,19 @@
                 "Head & Face Hot Towel Shave": "Complete head and face hot towel shave treatment (75 minutes)."
             };
             
+            // Display Yesinia availability note
+            document.getElementById('barberAvailabilityNote').style.display = 'block';
+            
             // Barber buttons
             const barberButtons = document.getElementById('barberButtons');
             const barberInput = document.getElementById('barber');
             barberButtons.addEventListener('click', function(e) {
                 if (e.target.tagName === 'BUTTON') {
+                    if (e.target.classList.contains('disabled')) {
+                        alert('This barber is not available on the selected date. Please choose another barber or change the date.');
+                        return;
+                    }
+                    
                     // Remove 'selected' class from all buttons
                     barberButtons.querySelectorAll('button').forEach(btn => btn.classList.remove('selected'));
                     // Add 'selected' class to the clicked button
@@ -325,6 +363,15 @@
 
                 // Check if selected day is Wednesday (3) or Sunday (0)
                 const dayOfWeek = selectedDate.getDay();
+                
+                // DEBUG information
+                const debugInfo = document.getElementById('debug-info');
+                debugInfo.innerHTML = `
+                    Selected date: ${dateInput.value}<br>
+                    Day of week: ${dayOfWeek} (0=Sunday, 6=Saturday)<br>
+                    Is Saturday: ${dayOfWeek === 6 ? 'YES' : 'NO'}
+                `;
+                
                 if (dayOfWeek === 3 || dayOfWeek === 0) {
                     const closedOption = document.createElement('option');
                     closedOption.value = '';
@@ -334,19 +381,23 @@
                     return;
                 }
                 
-                // Check if Yesinia is available (only on Saturdays)
+                // Update Yesinia's availability based on day of week
                 const yesiniaButton = Array.from(barberButtons.querySelectorAll('button')).find(btn => btn.dataset.value === 'Yesinia');
+                
                 if (yesiniaButton) {
+                    // Clear previous state
+                    yesiniaButton.classList.remove('disabled');
+                    yesiniaButton.classList.remove('selected');
+                    
                     if (dayOfWeek === 6) { // Saturday is day 6
-                        yesiniaButton.disabled = false;
-                        yesiniaButton.style.opacity = "1";
+                        // Saturday - Yesinia is available
+                        yesiniaButton.classList.remove('disabled');
                     } else {
-                        yesiniaButton.disabled = true;
-                        yesiniaButton.style.opacity = "0.5";
+                        // Not Saturday - Yesinia is not available
+                        yesiniaButton.classList.add('disabled');
                         
-                        // If Yesinia was selected, clear the selection
-                        if (yesiniaButton.classList.contains('selected')) {
-                            yesiniaButton.classList.remove('selected');
+                        // If Yesinia was previously selected, unselect her
+                        if (barberInput.value === 'Yesinia') {
                             barberInput.value = '';
                         }
                     }
