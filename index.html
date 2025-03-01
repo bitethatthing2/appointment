@@ -91,11 +91,6 @@
             border-color: #3498db;
         }
         
-        .button-group button.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
         .service-description {
             font-size: 0.85em;
             color: #6c757d;
@@ -143,6 +138,18 @@
             border-radius: 6px;
             margin-top: 10px;
             font-size: 14px;
+            display: none;
+        }
+        
+        .closed-day-note {
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
         }
         
         /* Responsive styles */
@@ -164,17 +171,6 @@
             }
         }
         
-        /* Calendar styling */
-        input[type="date"]::-webkit-calendar-picker-indicator {
-            cursor: pointer;
-            opacity: 0.8;
-            padding: 4px;
-        }
-        
-        input[type="date"]::-webkit-calendar-picker-indicator:hover {
-            opacity: 1;
-        }
-        
         /* Service section with better spacing */
         .service-section {
             margin-bottom: 30px;
@@ -191,22 +187,16 @@
                 grid-template-columns: 1fr;
             }
         }
-        
-        #debug-info {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-family: monospace;
-            display: none;
-        }
     </style>
 </head>
 <body>
     <h1>Book an Appointment</h1>
     
     <div class="form-container">
+        <div class="closed-day-note">
+            <strong>Closed Days:</strong> We are closed on Wednesdays and Sundays.
+        </div>
+        
         <form id="appointmentForm">
             <div class="form-row">
                 <div class="form-group">
@@ -232,9 +222,18 @@
                     <button type="button" data-value="Michael">Michael</button>
                     <button type="button" data-value="Yesinia">Yesinia</button>
                 </div>
-                <div id="barberAvailabilityNote" class="availability-note" style="display: none;">
-                    Note: Yesinia is only available on Saturdays.
+                
+                <!-- Barber availability notes - will show/hide based on selection -->
+                <div id="johnnyNote" class="availability-note">
+                    <strong>Johnny's Schedule:</strong> Monday, Tuesday, Thursday, Friday (9AM-7PM), Saturday (9AM-6PM)
                 </div>
+                <div id="michaelNote" class="availability-note">
+                    <strong>Michael's Schedule:</strong> Monday, Thursday, Friday (10AM-7PM), Saturday (9AM-6PM)
+                </div>
+                <div id="yesiniaNote" class="availability-note">
+                    <strong>Yesinia's Schedule:</strong> Saturday only (9AM-6PM)
+                </div>
+                
                 <input type="hidden" id="barber" name="barber" required>
             </div>
             
@@ -265,8 +264,27 @@
                 <div class="form-group">
                     <label for="time">Appointment Time:</label>
                     <select id="time" name="time" required>
-                        <!-- Time slots will be added here -->
-                        <option value="">Select a date first</option>
+                        <option value="">Select a time</option>
+                        <option value="09:00">9:00 AM</option>
+                        <option value="09:30">9:30 AM</option>
+                        <option value="10:00">10:00 AM</option>
+                        <option value="10:30">10:30 AM</option>
+                        <option value="11:00">11:00 AM</option>
+                        <option value="11:30">11:30 AM</option>
+                        <option value="12:00">12:00 PM</option>
+                        <option value="12:30">12:30 PM</option>
+                        <option value="13:00">1:00 PM</option>
+                        <option value="13:30">1:30 PM</option>
+                        <option value="14:00">2:00 PM</option>
+                        <option value="14:30">2:30 PM</option>
+                        <option value="15:00">3:00 PM</option>
+                        <option value="15:30">3:30 PM</option>
+                        <option value="16:00">4:00 PM</option>
+                        <option value="16:30">4:30 PM</option>
+                        <option value="17:00">5:00 PM</option>
+                        <option value="17:30">5:30 PM</option>
+                        <option value="18:00">6:00 PM</option>
+                        <option value="18:30">6:30 PM</option>
                     </select>
                 </div>
             </div>
@@ -279,8 +297,6 @@
         <h2>Appointment Confirmed!</h2>
         <p id="confirmationMessage"></p>
     </div>
-    
-    <div id="debug-info"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -299,24 +315,39 @@
                 "Head & Face Hot Towel Shave": "Complete head and face hot towel shave treatment (75 minutes)."
             };
             
-            // Display Yesinia availability note
-            document.getElementById('barberAvailabilityNote').style.display = 'block';
+            // Barber availability notes
+            const johnnyNote = document.getElementById('johnnyNote');
+            const michaelNote = document.getElementById('michaelNote');
+            const yesiniaNote = document.getElementById('yesiniaNote');
             
             // Barber buttons
             const barberButtons = document.getElementById('barberButtons');
             const barberInput = document.getElementById('barber');
             barberButtons.addEventListener('click', function(e) {
                 if (e.target.tagName === 'BUTTON') {
-                    if (e.target.classList.contains('disabled')) {
-                        alert('This barber is not available on the selected date. Please choose another barber or change the date.');
-                        return;
-                    }
-                    
                     // Remove 'selected' class from all buttons
                     barberButtons.querySelectorAll('button').forEach(btn => btn.classList.remove('selected'));
                     // Add 'selected' class to the clicked button
                     e.target.classList.add('selected');
-                    barberInput.value = e.target.dataset.value;
+                    const barberValue = e.target.dataset.value;
+                    barberInput.value = barberValue;
+                    
+                    // Hide all barber notes first
+                    johnnyNote.style.display = 'none';
+                    michaelNote.style.display = 'none';
+                    yesiniaNote.style.display = 'none';
+                    
+                    // Show the relevant barber note
+                    if (barberValue === 'Johnny') {
+                        johnnyNote.style.display = 'block';
+                    } else if (barberValue === 'Michael') {
+                        michaelNote.style.display = 'block';
+                    } else if (barberValue === 'Yesinia') {
+                        yesiniaNote.style.display = 'block';
+                    }
+                    
+                    // Filter available times based on barber
+                    updateAvailableTimes();
                 }
             });
 
@@ -339,118 +370,83 @@
                 }
             });
 
-            // Time slots
-            const timeSelect = document.getElementById('time');
+            // Date selection check
             const dateInput = document.getElementById('date');
-
-            function populateTimeSlots() {
-                timeSelect.innerHTML = ''; // Clear existing options
-                
-                // Default option
-                const defaultOption = document.createElement('option');
-                defaultOption.value = '';
-                defaultOption.textContent = 'Select a time';
-                timeSelect.appendChild(defaultOption);
-                
-                if (!dateInput.value) {
-                    return;
-                }
-                
-                let selectedDate = new Date(dateInput.value);
-                let today = new Date();
-                today.setHours(0, 0, 0, 0); // Reset time part
-                let isToday = selectedDate.getTime() === today.getTime();
-
-                // Check if selected day is Wednesday (3) or Sunday (0)
+            const timeSelect = document.getElementById('time');
+            
+            dateInput.addEventListener('change', function() {
+                const selectedDate = new Date(this.value);
                 const dayOfWeek = selectedDate.getDay();
                 
-                // DEBUG information
-                const debugInfo = document.getElementById('debug-info');
-                debugInfo.innerHTML = `
-                    Selected date: ${dateInput.value}<br>
-                    Day of week: ${dayOfWeek} (0=Sunday, 6=Saturday)<br>
-                    Is Saturday: ${dayOfWeek === 6 ? 'YES' : 'NO'}
-                `;
-                
+                // Check if selected day is Wednesday (3) or Sunday (0)
                 if (dayOfWeek === 3 || dayOfWeek === 0) {
-                    const closedOption = document.createElement('option');
-                    closedOption.value = '';
-                    closedOption.textContent = 'Closed on this day';
-                    closedOption.disabled = true;
-                    timeSelect.appendChild(closedOption);
+                    alert('We are closed on Wednesdays and Sundays. Please select another day.');
+                    this.value = '';
                     return;
                 }
                 
-                // Update Yesinia's availability based on day of week
-                const yesiniaButton = Array.from(barberButtons.querySelectorAll('button')).find(btn => btn.dataset.value === 'Yesinia');
+                // Check if Yesinia is selected but the date is not a Saturday
+                if (barberInput.value === 'Yesinia' && dayOfWeek !== 6) {
+                    alert('Yesinia is only available on Saturdays. Please select a Saturday or choose another barber.');
+                    this.value = '';
+                    return;
+                }
                 
-                if (yesiniaButton) {
-                    // Clear previous state
-                    yesiniaButton.classList.remove('disabled');
-                    yesiniaButton.classList.remove('selected');
-                    
-                    if (dayOfWeek === 6) { // Saturday is day 6
-                        // Saturday - Yesinia is available
-                        yesiniaButton.classList.remove('disabled');
-                    } else {
-                        // Not Saturday - Yesinia is not available
-                        yesiniaButton.classList.add('disabled');
+                // Check if Michael is selected but the date is not a Monday, Thursday, Friday, or Saturday
+                if (barberInput.value === 'Michael' && ![1, 4, 5, 6].includes(dayOfWeek)) {
+                    alert('Michael is only available on Mondays, Thursdays, Fridays, and Saturdays. Please select another day or choose another barber.');
+                    this.value = '';
+                    return;
+                }
+                
+                updateAvailableTimes();
+            });
+            
+            // Update available times based on barber and day
+            function updateAvailableTimes() {
+                if (!barberInput.value || !dateInput.value) return;
+                
+                const selectedDate = new Date(dateInput.value);
+                const dayOfWeek = selectedDate.getDay();
+                const barber = barberInput.value;
+                
+                // Clear all options except the default
+                const defaultOption = timeSelect.querySelector('option[value=""]');
+                timeSelect.innerHTML = '';
+                timeSelect.appendChild(defaultOption);
+                
+                // Add times based on barber and day
+                let startHour = 9; // default start time
+                let endHour = 19; // default end time (7 PM)
+                
+                if (barber === 'Michael' && dayOfWeek !== 6) {
+                    startHour = 10; // Michael starts at 10 AM on weekdays
+                }
+                
+                if (dayOfWeek === 6) { // Saturday
+                    endHour = 18; // Everyone ends at 6 PM on Saturday
+                }
+                
+                // Add time options
+                for (let hour = startHour; hour < endHour; hour++) {
+                    for (let minute of [0, 30]) {
+                        const timeValue = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
                         
-                        // If Yesinia was previously selected, unselect her
-                        if (barberInput.value === 'Yesinia') {
-                            barberInput.value = '';
-                        }
+                        // Format for display
+                        let displayHour = hour % 12;
+                        if (displayHour === 0) displayHour = 12;
+                        const ampm = hour >= 12 ? 'PM' : 'AM';
+                        const displayTime = `${displayHour}:${minute.toString().padStart(2, '0')} ${ampm}`;
+                        
+                        const option = document.createElement('option');
+                        option.value = timeValue;
+                        option.textContent = displayTime;
+                        timeSelect.appendChild(option);
                     }
-                }
-
-                let currentTime = new Date();
-                currentTime.setHours(9, 0, 0); // Set starting time to 9:00 AM
-
-                const endTime = new Date();
-                endTime.setHours(19, 0, 0); // Set ending time to 7:00 PM
-                
-                if (isToday) {
-                    let now = new Date();
-                    // Adjust start time to the next available slot
-                    if (now.getHours() > 9) {
-                        currentTime.setHours(now.getHours(), Math.ceil(now.getMinutes() / 15) * 15, 0);
-                    }
-                }
-
-                while (currentTime < endTime) {
-                    const hours = currentTime.getHours();
-                    const minutes = currentTime.getMinutes();
-
-                    // Disable past time slots for today
-                    if (isToday) {
-                        let now = new Date();
-                        if (hours < now.getHours() || (hours === now.getHours() && minutes <= now.getMinutes())) {
-                            currentTime.setMinutes(currentTime.getMinutes() + 15);
-                            continue; // Skip to the next iteration
-                        }
-                    }
-                    
-                    // Format hours for display (12-hour format with AM/PM)
-                    let displayHours = hours % 12;
-                    if (displayHours === 0) displayHours = 12;
-                    const ampm = hours >= 12 ? 'PM' : 'AM';
-                    const displayMinutes = minutes.toString().padStart(2, '0');
-                    
-                    const option = document.createElement('option');
-                    option.value = `${hours.toString().padStart(2, '0')}:${displayMinutes}`;
-                    option.textContent = `${displayHours}:${displayMinutes} ${ampm}`;
-                    timeSelect.appendChild(option);
-
-                    currentTime.setMinutes(currentTime.getMinutes() + 15); // Increment by 15 minutes
                 }
             }
-
-            dateInput.addEventListener('change', populateTimeSlots);
-
-            // Initialize time slots
-            populateTimeSlots();
             
-            // Form submission with direct XML HTTP request
+            // Form submission
             document.getElementById('appointmentForm').addEventListener('submit', function(event) {
                 event.preventDefault(); // Prevent the default form submission
 
@@ -467,13 +463,38 @@
                     alert('Please fill in all fields');
                     return;
                 }
+                
+                // Final validation for barber availability
+                const selectedDate = new Date(date);
+                const dayOfWeek = selectedDate.getDay();
+                
+                // Validate closed days
+                if (dayOfWeek === 0 || dayOfWeek === 3) {
+                    alert('We are closed on Wednesdays and Sundays. Please select another day.');
+                    return;
+                }
+                
+                // Validate Yesinia is only available on Saturdays
+                if (barber === 'Yesinia' && dayOfWeek !== 6) {
+                    alert('Yesinia is only available on Saturdays. Please select a Saturday or choose another barber.');
+                    return;
+                }
+                
+                // Validate Michael's schedule
+                if (barber === 'Michael' && ![1, 4, 5, 6].includes(dayOfWeek)) {
+                    alert('Michael is only available on Mondays, Thursdays, Fridays, and Saturdays. Please select another day or choose another barber.');
+                    return;
+                }
 
-                // Format time for display in confirmation (12-hour format)
-                const [hours, minutes] = time.split(':');
-                const hourNum = parseInt(hours, 10);
-                const displayHours = hourNum % 12 || 12;
-                const ampm = hourNum >= 12 ? 'PM' : 'AM';
-                const displayTime = `${displayHours}:${minutes} ${ampm}`;
+                // Format time for display (convert from 24h to 12h format)
+                let displayTime = time;
+                if (time) {
+                    const [hours, minutes] = time.split(':');
+                    const hourNum = parseInt(hours, 10);
+                    const displayHours = hourNum % 12 || 12;
+                    const ampm = hourNum >= 12 ? 'PM' : 'AM';
+                    displayTime = `${displayHours}:${minutes} ${ampm}`;
+                }
 
                 // Create the data to send
                 const appointmentData = {
@@ -483,7 +504,7 @@
                     barber: barber,
                     service: service,
                     date: date,
-                    time: displayTime // Send in 12-hour format for readability
+                    time: displayTime
                 };
 
                 // Calculate appointment duration based on the selected service
@@ -496,24 +517,13 @@
                     duration = 75;
                 }
 
-                // Calculate end time of appointment
-                const startTime = new Date();
-                startTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-                const endTime = new Date(startTime.getTime() + duration * 60000); // Add duration in milliseconds
-
-                // Format end time for display (12-hour format)
-                const endHours = endTime.getHours() % 12 || 12;
-                const endMinutes = endTime.getMinutes().toString().padStart(2, '0');
-                const endAmPm = endTime.getHours() >= 12 ? 'PM' : 'AM';
-                const endTimeFormatted = `${endHours}:${endMinutes} ${endAmPm}`;
-
                 // Format date for display
                 const appointmentDate = new Date(date);
                 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
                 const formattedDate = appointmentDate.toLocaleDateString('en-US', options);
 
                 // Create confirmation message
-                const confirmationMessage = `Thank you, ${name}! Your appointment has been booked with ${barber} for ${service} on ${formattedDate} from ${displayTime} to ${endTimeFormatted}. We'll send a confirmation email to ${email} and may contact you at ${phone} if needed.`;
+                const confirmationMessage = `Thank you, ${name}! Your appointment has been booked with ${barber} for ${service} on ${formattedDate} at ${displayTime}. We'll send a confirmation email to ${email} and may contact you at ${phone} if needed.`;
                 
                 // Use XMLHttpRequest
                 const xhr = new XMLHttpRequest();
@@ -521,7 +531,7 @@
                 xhr.setRequestHeader('Content-Type', 'application/json');
                 
                 xhr.onload = function() {
-                    // Show confirmation regardless of response status due to CORS limitations
+                    // Show confirmation
                     document.getElementById('confirmationMessage').textContent = confirmationMessage;
                     document.getElementById('confirmation').style.display = 'block';
                     
@@ -534,6 +544,10 @@
                     document.querySelectorAll('.button-group button.selected').forEach(btn => btn.classList.remove('selected'));
                     // Reset service description
                     serviceDescriptionElement.textContent = "Please select a service to see its description.";
+                    // Hide all barber notes
+                    johnnyNote.style.display = 'none';
+                    michaelNote.style.display = 'none';
+                    yesiniaNote.style.display = 'none';
                 };
                 
                 xhr.onerror = function() {
@@ -550,6 +564,10 @@
                     document.querySelectorAll('.button-group button.selected').forEach(btn => btn.classList.remove('selected'));
                     // Reset service description
                     serviceDescriptionElement.textContent = "Please select a service to see its description.";
+                    // Hide all barber notes
+                    johnnyNote.style.display = 'none';
+                    michaelNote.style.display = 'none';
+                    yesiniaNote.style.display = 'none';
                 };
                 
                 // Send the data
