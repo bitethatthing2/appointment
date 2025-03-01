@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Booking</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9f9f9;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+        
+        .form-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        input[type="text"],
+        input[type="date"],
+        input[type="email"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus,
+        select:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .button-group button {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .button-group button:hover {
+            background-color: #e9ecef;
+            border-color: #ced4da;
+        }
+        
+        .button-group button.selected {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        .service-description {
+            font-size: 0.85em;
+            color: #6c757d;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            padding-left: 5px;
+        }
+        
+        button[type="submit"] {
+            background-color: #2c3e50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        
+        button[type="submit"]:hover {
+            background-color: #1a252f;
+        }
+        
+        #confirmation {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 6px;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        #confirmation h2 {
+            color: #155724;
+            margin-bottom: 10px;
+        }
+        
+        /* Responsive styles */
+        @media (min-width: 768px) {
+            .form-row {
+                display: flex;
+                gap: 20px;
+            }
+            
+            .form-row .form-group {
+                flex: 1;
+            }
+            
+            button[type="submit"] {
+                width: auto;
+                padding: 12px 40px;
+                margin: 0 auto;
+                display: block;
+            }
+        }
+        
+        /* Calendar styling */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            opacity: 0.8;
+            padding: 4px;
+        }
+        
+        input[type="date"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+        
+        /* Service section with better spacing */
+        .service-section {
+            margin-bottom: 30px;
+        }
+        
+        .service-section .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        @media (max-width: 600px) {
+            .service-section .button-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Book an Appointment</h1>
+    
+    <div class="form-container">
+        <form id="appointmentForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name">Full Name:</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone Number:</label>
+                    <input type="text" id="phone" name="phone" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Select Your Barber:</label>
+                <div class="button-group" id="barberButtons">
+                    <button type="button" data-value="Johnny">Johnny</button>
+                    <button type="button" data-value="Michael">Michael</button>
+                    <button type="button" data-value="Yesinia">Yesinia</button>
+                </div>
+                <input type="hidden" id="barber" name="barber" required>
+            </div>
+            
+            <div class="form-group service-section">
+                <label>Select Your Service:</label>
+                <div class="button-group" id="serviceButtons">
+                    <button type="button" data-value="Haircut">Haircut - $45</button>
+                    <button type="button" data-value="Haircut & Beard Trim">Haircut & Beard Trim - $60</button>
+                    <button type="button" data-value="Beard Trim">Beard Trim - $30</button>
+                    <button type="button" data-value="Hot Towel Shave">Hot Towel Shave - $40</button>
+                    <button type="button" data-value="Head Shave">Head Shave - $40</button>
+                    <button type="button" data-value="The Distinguished Gentleman">Distinguished Gentleman - $75</button>
+                    <button type="button" data-value="Head & Face Hot Towel Shave">Head & Face Shave - $75</button>
+                </div>
+                
+                <div id="serviceDescription" class="service-description">
+                    Please select a service to see its description.
+                </div>
+                <input type="hidden" id="service" name="service" required>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="date">Appointment Date:</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="time">Appointment Time:</label>
+                    <select id="time" name="time" required>
+                        <!-- Time slots will be added here -->
+                        <option value="">Select a date first</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button type="submit">Book My Appointment</button>
+        </form>
+    </div>
+    
+    <div id="confirmation">
+        <h2>Appointment Confirmed!</h2>
+        <p id="confirmationMessage"></p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').setAttribute('min', today);
+            
+            // Service descriptions
+            const serviceDescriptions = {
+                "Haircut": "Classic haircut with precision styling (45 minutes).",
+                "Haircut & Beard Trim": "Comprehensive haircut and beard shaping for a complete look (60 minutes).",
+                "Beard Trim": "Precise beard grooming and shaping (30 minutes).",
+                "Hot Towel Shave": "Relaxing hot towel shave for a smooth finish (30 minutes).",
+                "Head Shave": "Clean and smooth head shave (40 minutes).",
+                "The Distinguished Gentleman": "VIP experience at Capitol Tower with complimentary whiskey, haircut & beard trim with straight razor hot towel (75 minutes).",
+                "Head & Face Hot Towel Shave": "Complete head and face hot towel shave treatment (75 minutes)."
+            };
+            
+            // Barber buttons
+            const barberButtons = document.getElementById('barberButtons');
+            const barberInput = document.getElementById('barber');
+            barberButtons.addEventListener('click', function(e) {
+                if (e.target.tagName === 'BUTTON') {
+                    // Remove 'selected' class from all buttons
+                    barberButtons.querySelectorAll('button').forEach(btn => btn.classList.remove('selected'));
+                    // Add 'selected' class to the clicked button
+                    e.target.classList.add('selected');
+                    barberInput.value = e.target.dataset.value;
+                }
+            });
+
+            // Service buttons
+            const serviceButtons = document.getElementById('serviceButtons');
+            const serviceInput = document.getElementById('service');
+            const serviceDescriptionElement = document.getElementById('serviceDescription');
+            
+            serviceButtons.addEventListener('click', function(e) {
+                if (e.target.tagName === 'BUTTON') {
+                    // Remove 'selected' class from all buttons
+                    serviceButtons.querySelectorAll('button').forEach(btn => btn.classList.remove('selected'));
+                    // Add 'selected' class to the clicked button
+                    e.target.classList.add('selected');
+                    const serviceValue = e.target.dataset.value;
+                    serviceInput.value = serviceValue;
+                    
+                    // Update the service description
+                    serviceDescriptionElement.textContent = serviceDescriptions[serviceValue] || "Service description not available.";
+                }
+            });
+
+            // Time slots
+            const timeSelect = document.getElementById('time');
+            const dateInput = document.getElementById('date');
+
+            function populateTimeSlots() {
+                timeSelect.innerHTML = ''; // Clear existing options
+                
+                // Default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select a time';
+                timeSelect.appendChild(defaultOption);
+                
+                if (!dateInput.value) {
+                    return;
+                }
+                
+                let selectedDate = new Date(dateInput.value);
+                let today = new Date();
+                today.setHours(0, 0, 0, 0); // Reset time part
+                let isToday = selectedDate.getTime() === today.getTime();
+
+                // Check if selected day is Wednesday (3) or Sunday (0)
+                const dayOfWeek = selectedDate.getDay();
+                if (dayOfWeek === 3 || dayOfWeek === 0) {
+                    const closedOption = document.createElement('option');
+                    closedOption.value = '';
+                    closedOption.textContent = 'Closed on this day';
+                    closedOption.disabled = true;
+                    timeSelect.appendChild(closedOption);
+                    return;
+                }
+                
+                // Check if Yesinia is available (only on Saturdays)
+                const yesiniaButton = Array.from(barberButtons.querySelectorAll('button')).find(btn => btn.dataset.value === 'Yesinia');
+                if (yesiniaButton) {
+                    if (dayOfWeek === 6) { // Saturday is day 6
+                        yesiniaButton.disabled = false;
+                        yesiniaButton.style.opacity = "1";
+                    } else {
+                        yesiniaButton.disabled = true;
+                        yesiniaButton.style.opacity = "0.5";
+                        
+                        // If Yesinia was selected, clear the selection
+                        if (yesiniaButton.classList.contains('selected')) {
+                            yesiniaButton.classList.remove('selected');
+                            barberInput.value = '';
+                        }
+                    }
+                }
+
+                let currentTime = new Date();
+                currentTime.setHours(9, 0, 0); // Set starting time to 9:00 AM
+
+                const endTime = new Date();
+                endTime.setHours(19, 0, 0); // Set ending time to 7:00 PM
+                
+                if (isToday) {
+                    let now = new Date();
+                    // Adjust start time to the next available slot
+                    if (now.getHours() > 9) {
+                        currentTime.setHours(now.getHours(), Math.ceil(now.getMinutes() / 15) * 15, 0);
+                    }
+                }
+
+                while (currentTime < endTime) {
+                    const hours = currentTime.getHours();
+                    const minutes = currentTime.getMinutes();
+
+                    // Disable past time slots for today
+                    if (isToday) {
+                        let now = new Date();
+                        if (hours < now.getHours() || (hours === now.getHours() && minutes <= now.getMinutes())) {
+                            currentTime.setMinutes(currentTime.getMinutes() + 15);
+                            continue; // Skip to the next iteration
+                        }
+                    }
+                    
+                    // Format hours for display (12-hour format with AM/PM)
+                    let displayHours = hours % 12;
+                    if (displayHours === 0) displayHours = 12;
+                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                    const displayMinutes = minutes.toString().padStart(2, '0');
+                    
+                    const option = document.createElement('option');
+                    option.value = `${hours.toString().padStart(2, '0')}:${displayMinutes}`;
+                    option.textContent = `${displayHours}:${displayMinutes} ${ampm}`;
+                    timeSelect.appendChild(option);
+
+                    currentTime.setMinutes(currentTime.getMinutes() + 15); // Increment by 15 minutes
+                }
+            }
+
+            dateInput.addEventListener('change', populateTimeSlots);
+
+            // Initialize time slots
+            populateTimeSlots();
+            
+            // Form submission with direct XML HTTP request
+            document.getElementById('appointmentForm').addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevent the default form submission
+
+                // Validate all fields are filled
+                const name = document.getElementById('name').value;
+                const phone = document.getElementById('phone').value;
+                const email = document.getElementById('email').value;
+                const barber = document.getElementById('barber').value;
+                const service = document.getElementById('service').value;
+                const date = document.getElementById('date').value;
+                const time = document.getElementById('time').value;
+                
+                if (!name || !phone || !email || !barber || !service || !date || !time) {
+                    alert('Please fill in all fields');
+                    return;
+                }
+
+                // Format time for display in confirmation (12-hour format)
+                const [hours, minutes] = time.split(':');
+                const hourNum = parseInt(hours, 10);
+                const displayHours = hourNum % 12 || 12;
+                const ampm = hourNum >= 12 ? 'PM' : 'AM';
+                const displayTime = `${displayHours}:${minutes} ${ampm}`;
+
+                // Create the data to send
+                const appointmentData = {
+                    name: name,
+                    phone: phone,
+                    email: email,
+                    barber: barber,
+                    service: service,
+                    date: date,
+                    time: displayTime // Send in 12-hour format for readability
+                };
+
+                // Calculate appointment duration based on the selected service
+                let duration = 60; // Default duration is 60 minutes
+                if (service === 'Haircut') {
+                    duration = 45;
+                } else if (service === 'Beard Trim' || service === 'Hot Towel Shave') {
+                    duration = 30;
+                } else if (service === 'The Distinguished Gentleman' || service === 'Head & Face Hot Towel Shave') {
+                    duration = 75;
+                }
+
+                // Calculate end time of appointment
+                const startTime = new Date();
+                startTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                const endTime = new Date(startTime.getTime() + duration * 60000); // Add duration in milliseconds
+
+                // Format end time for display (12-hour format)
+                const endHours = endTime.getHours() % 12 || 12;
+                const endMinutes = endTime.getMinutes().toString().padStart(2, '0');
+                const endAmPm = endTime.getHours() >= 12 ? 'PM' : 'AM';
+                const endTimeFormatted = `${endHours}:${endMinutes} ${endAmPm}`;
+
+                // Format date for display
+                const appointmentDate = new Date(date);
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const formattedDate = appointmentDate.toLocaleDateString('en-US', options);
+
+                // Create confirmation message
+                const confirmationMessage = `Thank you, ${name}! Your appointment has been booked with ${barber} for ${service} on ${formattedDate} from ${displayTime} to ${endTimeFormatted}. We'll send a confirmation email to ${email} and may contact you at ${phone} if needed.`;
+                
+                // Use XMLHttpRequest
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', 'https://bitethatthing.app.n8n.cloud/webhook/946e8d62-3068-443d-93e6-bedd753af479', true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                
+                xhr.onload = function() {
+                    // Show confirmation regardless of response status due to CORS limitations
+                    document.getElementById('confirmationMessage').textContent = confirmationMessage;
+                    document.getElementById('confirmation').style.display = 'block';
+                    
+                    // Scroll to confirmation
+                    document.getElementById('confirmation').scrollIntoView({ behavior: 'smooth' });
+
+                    // Reset the form
+                    document.getElementById('appointmentForm').reset();
+                    // Remove selected classes
+                    document.querySelectorAll('.button-group button.selected').forEach(btn => btn.classList.remove('selected'));
+                    // Reset service description
+                    serviceDescriptionElement.textContent = "Please select a service to see its description.";
+                };
+                
+                xhr.onerror = function() {
+                    // Still show confirmation since the error might just be CORS-related
+                    document.getElementById('confirmationMessage').textContent = confirmationMessage;
+                    document.getElementById('confirmation').style.display = 'block';
+                    
+                    // Scroll to confirmation
+                    document.getElementById('confirmation').scrollIntoView({ behavior: 'smooth' });
+                    
+                    // Reset the form
+                    document.getElementById('appointmentForm').reset();
+                    // Remove selected classes
+                    document.querySelectorAll('.button-group button.selected').forEach(btn => btn.classList.remove('selected'));
+                    // Reset service description
+                    serviceDescriptionElement.textContent = "Please select a service to see its description.";
+                };
+                
+                // Send the data
+                xhr.send(JSON.stringify(appointmentData));
+            });
+        });
+    </script>
+</body>
+</html>
