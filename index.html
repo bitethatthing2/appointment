@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Appointment Booking</title>
+    <title>Book with Michael</title>
     <style>
         * {
             box-sizing: border-box;
@@ -137,8 +137,8 @@
             padding: 10px;
             border-radius: 6px;
             margin-top: 10px;
+            margin-bottom: 20px;
             font-size: 14px;
-            display: none;
         }
         
         .closed-day-note {
@@ -150,6 +150,35 @@
             margin-top: 10px;
             margin-bottom: 20px;
             font-size: 14px;
+        }
+        
+        .barber-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+        
+        .barber-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: #666;
+        }
+        
+        .barber-details {
+            flex: 1;
+        }
+        
+        .barber-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
         }
         
         /* Responsive styles */
@@ -190,9 +219,21 @@
     </style>
 </head>
 <body>
-    <h1>Book an Appointment</h1>
+    <h1>Book an Appointment with Michael</h1>
     
     <div class="form-container">
+        <div class="barber-info">
+            <div class="barber-photo">M</div>
+            <div class="barber-details">
+                <div class="barber-name">Michael</div>
+                <p>Master Barber</p>
+            </div>
+        </div>
+        
+        <div class="availability-note">
+            <strong>Michael's Schedule:</strong> Monday, Thursday, Friday (10AM-7PM), Saturday (9AM-6PM)
+        </div>
+        
         <div class="closed-day-note">
             <strong>Closed Days:</strong> We are closed on Wednesdays and Sundays.
         </div>
@@ -213,28 +254,6 @@
             <div class="form-group">
                 <label for="email">Email Address:</label>
                 <input type="email" id="email" name="email" required>
-            </div>
-            
-            <div class="form-group">
-                <label>Select Your Barber:</label>
-                <div class="button-group" id="barberButtons">
-                    <button type="button" data-value="Johnny">Johnny</button>
-                    <button type="button" data-value="Michael">Michael</button>
-                    <button type="button" data-value="Yesinia">Yesinia</button>
-                </div>
-                
-                <!-- Barber availability notes - will show/hide based on selection -->
-                <div id="johnnyNote" class="availability-note">
-                    <strong>Johnny's Schedule:</strong> Monday, Tuesday, Thursday, Friday (9AM-7PM), Saturday (9AM-6PM)
-                </div>
-                <div id="michaelNote" class="availability-note">
-                    <strong>Michael's Schedule:</strong> Monday, Thursday, Friday (10AM-7PM), Saturday (9AM-6PM)
-                </div>
-                <div id="yesiniaNote" class="availability-note">
-                    <strong>Yesinia's Schedule:</strong> Saturday only (9AM-6PM)
-                </div>
-                
-                <input type="hidden" id="barber" name="barber" required>
             </div>
             
             <div class="form-group service-section">
@@ -264,27 +283,7 @@
                 <div class="form-group">
                     <label for="time">Appointment Time:</label>
                     <select id="time" name="time" required>
-                        <option value="">Select a time</option>
-                        <option value="09:00">9:00 AM</option>
-                        <option value="09:30">9:30 AM</option>
-                        <option value="10:00">10:00 AM</option>
-                        <option value="10:30">10:30 AM</option>
-                        <option value="11:00">11:00 AM</option>
-                        <option value="11:30">11:30 AM</option>
-                        <option value="12:00">12:00 PM</option>
-                        <option value="12:30">12:30 PM</option>
-                        <option value="13:00">1:00 PM</option>
-                        <option value="13:30">1:30 PM</option>
-                        <option value="14:00">2:00 PM</option>
-                        <option value="14:30">2:30 PM</option>
-                        <option value="15:00">3:00 PM</option>
-                        <option value="15:30">3:30 PM</option>
-                        <option value="16:00">4:00 PM</option>
-                        <option value="16:30">4:30 PM</option>
-                        <option value="17:00">5:00 PM</option>
-                        <option value="17:30">5:30 PM</option>
-                        <option value="18:00">6:00 PM</option>
-                        <option value="18:30">6:30 PM</option>
+                        <option value="">Select a date first</option>
                     </select>
                 </div>
             </div>
@@ -315,42 +314,6 @@
                 "Head & Face Hot Towel Shave": "Complete head and face hot towel shave treatment (75 minutes)."
             };
             
-            // Barber availability notes
-            const johnnyNote = document.getElementById('johnnyNote');
-            const michaelNote = document.getElementById('michaelNote');
-            const yesiniaNote = document.getElementById('yesiniaNote');
-            
-            // Barber buttons
-            const barberButtons = document.getElementById('barberButtons');
-            const barberInput = document.getElementById('barber');
-            barberButtons.addEventListener('click', function(e) {
-                if (e.target.tagName === 'BUTTON') {
-                    // Remove 'selected' class from all buttons
-                    barberButtons.querySelectorAll('button').forEach(btn => btn.classList.remove('selected'));
-                    // Add 'selected' class to the clicked button
-                    e.target.classList.add('selected');
-                    const barberValue = e.target.dataset.value;
-                    barberInput.value = barberValue;
-                    
-                    // Hide all barber notes first
-                    johnnyNote.style.display = 'none';
-                    michaelNote.style.display = 'none';
-                    yesiniaNote.style.display = 'none';
-                    
-                    // Show the relevant barber note
-                    if (barberValue === 'Johnny') {
-                        johnnyNote.style.display = 'block';
-                    } else if (barberValue === 'Michael') {
-                        michaelNote.style.display = 'block';
-                    } else if (barberValue === 'Yesinia') {
-                        yesiniaNote.style.display = 'block';
-                    }
-                    
-                    // Filter available times based on barber
-                    updateAvailableTimes();
-                }
-            });
-
             // Service buttons
             const serviceButtons = document.getElementById('serviceButtons');
             const serviceInput = document.getElementById('service');
@@ -385,16 +348,9 @@
                     return;
                 }
                 
-                // Check if Yesinia is selected but the date is not a Saturday
-                if (barberInput.value === 'Yesinia' && dayOfWeek !== 6) {
-                    alert('Yesinia is only available on Saturdays. Please select a Saturday or choose another barber.');
-                    this.value = '';
-                    return;
-                }
-                
-                // Check if Michael is selected but the date is not a Monday, Thursday, Friday, or Saturday
-                if (barberInput.value === 'Michael' && ![1, 4, 5, 6].includes(dayOfWeek)) {
-                    alert('Michael is only available on Mondays, Thursdays, Fridays, and Saturdays. Please select another day or choose another barber.');
+                // Check if the date is a day Michael doesn't work (Tuesday=2)
+                if (![1, 4, 5, 6].includes(dayOfWeek)) {
+                    alert('Michael is only available on Mondays, Thursdays, Fridays, and Saturdays. Please select another day.');
                     this.value = '';
                     return;
                 }
@@ -402,29 +358,29 @@
                 updateAvailableTimes();
             });
             
-            // Update available times based on barber and day
+            // Update available times based on day
             function updateAvailableTimes() {
-                if (!barberInput.value || !dateInput.value) return;
+                if (!dateInput.value) return;
                 
                 const selectedDate = new Date(dateInput.value);
                 const dayOfWeek = selectedDate.getDay();
-                const barber = barberInput.value;
                 
-                // Clear all options except the default
-                const defaultOption = timeSelect.querySelector('option[value=""]');
+                // Clear all options
                 timeSelect.innerHTML = '';
+                
+                // Add default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select a time';
                 timeSelect.appendChild(defaultOption);
                 
-                // Add times based on barber and day
-                let startHour = 9; // default start time
-                let endHour = 19; // default end time (7 PM)
-                
-                if (barber === 'Michael' && dayOfWeek !== 6) {
-                    startHour = 10; // Michael starts at 10 AM on weekdays
-                }
+                // Set hours based on day
+                let startHour = 10; // Default weekday start for Michael (10 AM)
+                let endHour = 19;   // Default end time (7 PM)
                 
                 if (dayOfWeek === 6) { // Saturday
-                    endHour = 18; // Everyone ends at 6 PM on Saturday
+                    startHour = 9;    // Starts earlier on Saturday
+                    endHour = 18;     // Ends earlier on Saturday (6 PM)
                 }
                 
                 // Add time options
@@ -444,6 +400,33 @@
                         timeSelect.appendChild(option);
                     }
                 }
+                
+                // Here we would check for already booked appointments and disable those times
+                // This would require an API call to fetch existing appointments
+                checkBookedAppointments();
+            }
+            
+            // Function to check for booked appointments
+            function checkBookedAppointments() {
+                // This would be replaced with an actual API call to your system
+                console.log("Checking for booked appointments...");
+                
+                // Example of how you would disable booked times
+                // The implementation would depend on your actual booking system
+                /*
+                fetch('/api/check-availability?date=' + dateInput.value)
+                    .then(response => response.json())
+                    .then(data => {
+                        // data.bookedTimes would contain times already booked
+                        data.bookedTimes.forEach(time => {
+                            const option = timeSelect.querySelector(`option[value="${time}"]`);
+                            if (option) {
+                                option.disabled = true;
+                                option.textContent += " (Booked)";
+                            }
+                        });
+                    });
+                */
             }
             
             // Form submission
@@ -454,17 +437,16 @@
                 const name = document.getElementById('name').value;
                 const phone = document.getElementById('phone').value;
                 const email = document.getElementById('email').value;
-                const barber = document.getElementById('barber').value;
                 const service = document.getElementById('service').value;
                 const date = document.getElementById('date').value;
                 const time = document.getElementById('time').value;
                 
-                if (!name || !phone || !email || !barber || !service || !date || !time) {
+                if (!name || !phone || !email || !service || !date || !time) {
                     alert('Please fill in all fields');
                     return;
                 }
                 
-                // Final validation for barber availability
+                // Final validation for availability
                 const selectedDate = new Date(date);
                 const dayOfWeek = selectedDate.getDay();
                 
@@ -474,15 +456,9 @@
                     return;
                 }
                 
-                // Validate Yesinia is only available on Saturdays
-                if (barber === 'Yesinia' && dayOfWeek !== 6) {
-                    alert('Yesinia is only available on Saturdays. Please select a Saturday or choose another barber.');
-                    return;
-                }
-                
                 // Validate Michael's schedule
-                if (barber === 'Michael' && ![1, 4, 5, 6].includes(dayOfWeek)) {
-                    alert('Michael is only available on Mondays, Thursdays, Fridays, and Saturdays. Please select another day or choose another barber.');
+                if (![1, 4, 5, 6].includes(dayOfWeek)) {
+                    alert('Michael is only available on Mondays, Thursdays, Fridays, and Saturdays. Please select another day.');
                     return;
                 }
 
@@ -501,7 +477,7 @@
                     name: name,
                     phone: phone,
                     email: email,
-                    barber: barber,
+                    barber: "Michael", // Hardcoded since this form is just for Michael
                     service: service,
                     date: date,
                     time: displayTime
@@ -523,7 +499,7 @@
                 const formattedDate = appointmentDate.toLocaleDateString('en-US', options);
 
                 // Create confirmation message
-                const confirmationMessage = `Thank you, ${name}! Your appointment has been booked with ${barber} for ${service} on ${formattedDate} at ${displayTime}. We'll send a confirmation email to ${email} and may contact you at ${phone} if needed.`;
+                const confirmationMessage = `Thank you, ${name}! Your appointment has been booked with Michael for ${service} on ${formattedDate} at ${displayTime}. We'll send a confirmation email to ${email} and may contact you at ${phone} if needed.`;
                 
                 // Use XMLHttpRequest
                 const xhr = new XMLHttpRequest();
@@ -544,10 +520,6 @@
                     document.querySelectorAll('.button-group button.selected').forEach(btn => btn.classList.remove('selected'));
                     // Reset service description
                     serviceDescriptionElement.textContent = "Please select a service to see its description.";
-                    // Hide all barber notes
-                    johnnyNote.style.display = 'none';
-                    michaelNote.style.display = 'none';
-                    yesiniaNote.style.display = 'none';
                 };
                 
                 xhr.onerror = function() {
@@ -564,10 +536,6 @@
                     document.querySelectorAll('.button-group button.selected').forEach(btn => btn.classList.remove('selected'));
                     // Reset service description
                     serviceDescriptionElement.textContent = "Please select a service to see its description.";
-                    // Hide all barber notes
-                    johnnyNote.style.display = 'none';
-                    michaelNote.style.display = 'none';
-                    yesiniaNote.style.display = 'none';
                 };
                 
                 // Send the data
