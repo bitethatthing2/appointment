@@ -1,144 +1,216 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Book with Michael</title>
   <style>
+    /* Basic Reset/Styling */
     body {
-      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
       background-color: #f9f9f9;
-      padding: 20px;
+      font-family: Arial, sans-serif;
+      color: #333;
     }
+
+    /* Container & Header */
+    .container {
+      max-width: 600px;
+      background-color: #fff;
+      margin: 40px auto;
+      padding: 20px 30px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      border-radius: 8px;
+    }
+
     h1 {
       text-align: center;
       color: #2c3e50;
+      margin-bottom: 15px;
     }
-    .form-container {
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      max-width: 500px;
-      margin: auto;
+
+    p.note {
+      font-size: 0.9em;
+      color: #666;
+      margin-bottom: 20px;
+      line-height: 1.4;
     }
-    label {
-      font-weight: bold;
+
+    /* Form Fields */
+    form label {
       display: block;
-      margin: 10px 0 5px;
+      font-weight: bold;
+      margin: 15px 0 5px;
     }
-    input, select, button {
+
+    form input,
+    form select {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+
+    form input:focus,
+    form select:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+
+    form select#time {
       margin-bottom: 10px;
-      border-radius: 5px;
-      border: 1px solid #ddd;
     }
-    button {
+
+    form button[type="submit"] {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: bold;
       background-color: #2c3e50;
-      color: white;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
       cursor: pointer;
+      margin-top: 20px;
+      transition: background-color 0.3s;
     }
-    button:hover {
+
+    form button[type="submit"]:hover {
       background-color: #1a252f;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .container {
+        margin: 20px auto;
+        padding: 15px;
+      }
+      form label {
+        margin: 10px 0 3px;
+      }
+      form button[type="submit"] {
+        margin-top: 15px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Book an Appointment with Michael</h1>
-  <div class="form-container">
+  <div class="container">
+    <h1>Book with Michael</h1>
+    <p class="note">
+      Welcome! Please select a date first to see all available times for that day. 
+      Then fill out your details, choose a service, and book your appointment.
+    </p>
+
     <form id="appointmentForm">
-      <label for="name">Full Name:</label>
-      <input type="text" id="name" name="name" required />
-
-      <label for="phone">Phone Number:</label>
-      <input type="text" id="phone" name="phone" required />
-
-      <label for="email">Email Address:</label>
-      <input type="email" id="email" name="email" required />
-
-      <label for="service">Select Your Service:</label>
-      <select id="service" name="service" required></select>
-
+      <!-- 1) User picks date -->
       <label for="date">Appointment Date:</label>
       <input type="date" id="date" name="date" required />
 
-      <label for="time">Appointment Time:</label>
+      <!-- 2) Display times once date is chosen -->
+      <label for="time">Available Times:</label>
       <select id="time" name="time" required>
-        <option value="">Select a date first</option>
+        <option value="">(Pick a date above)</option>
       </select>
 
+      <!-- 3) Personal Details -->
+      <label for="name">Full Name:</label>
+      <input 
+        type="text" 
+        id="name" 
+        name="name" 
+        placeholder="e.g., John Doe" 
+        required 
+      />
+
+      <label for="phone">Phone Number:</label>
+      <input
+        type="text"
+        id="phone"
+        name="phone"
+        placeholder="e.g., 555-123-4567"
+        required
+      />
+
+      <label for="email">Email Address:</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        placeholder="yourname@example.com"
+        required
+      />
+
+      <!-- 4) Service Dropdown -->
+      <label for="service">Select Your Service:</label>
+      <select id="service" name="service" required>
+        <option value="" hidden disabled selected>(Choose a service)</option>
+        <option value="Haircut">Haircut - $45</option>
+        <option value="Beard Trim">Beard Trim - $30</option>
+        <option value="Hot Towel Shave">Hot Towel Shave - $40</option>
+      </select>
+
+      <!-- 5) Submit Button -->
       <button type="submit">Book My Appointment</button>
     </form>
   </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      const serviceSelect = document.getElementById('service');
       const dateInput = document.getElementById('date');
       const timeSelect = document.getElementById('time');
 
-      /* 
-       * 1) FETCH SERVICES via "107485b5..." (GET)
-       * Adjust or remove if your system doesn't need a services list.
-       */
-      fetch('https://bitethatthing.app.n8n.cloud/webhook/107485b5-3b46-4dc8-8c05-c06a7a7e91fe')
-        .then(response => response.json())
-        .then(data => {
-          // data.services should be an array: [{ name: "Haircut", price: 45 }, ...]
-          if (!data.services) return;
-          data.services.forEach(service => {
-            let option = document.createElement('option');
-            option.value = service.name;
-            option.textContent = `${service.name} - $${service.price}`;
-            serviceSelect.appendChild(option);
-          });
-        })
-        .catch(err => console.error('Error fetching services:', err));
-
-      /*
-       * 2) FETCH AVAILABLE TIMES via "9c6e7372..." (GET)
-       */
+      // 1) When date changes, fetch times from GET endpoint
       dateInput.addEventListener('change', function() {
-        const selectedDate = dateInput.value;
+        const selectedDate = dateInput.value.trim();
+        if (!selectedDate) return;
+
+        // Clear old options
         timeSelect.innerHTML = '<option value="">Loading available times...</option>';
 
-        // If your workflow expects 'barber=Michael', keep it. Otherwise remove &barber=Michael
+        // *** GET Endpoint: Fetch times for the chosen date
         fetch(`https://bitethatthing.app.n8n.cloud/webhook/9c6e7372-2a6a-4ebe-8c77-788f1378ecde?date=${selectedDate}&barber=Michael`)
           .then(response => response.json())
           .then(data => {
-            timeSelect.innerHTML = '<option value="">Select a time</option>';
-            if (!data.availableTimes) return;
+            timeSelect.innerHTML = '<option value=\"\">(Select a time)</option>';
+            if (!data.availableTimes) {
+              // In case there's no 'availableTimes' key
+              console.warn('No availableTimes found in response.');
+              return;
+            }
 
+            // Populate dropdown with returned times
             data.availableTimes.forEach(time => {
-              let option = document.createElement('option');
-              option.value = time;
-              option.textContent = time;
-              timeSelect.appendChild(option);
+              let opt = document.createElement('option');
+              opt.value = time;
+              opt.textContent = time;
+              timeSelect.appendChild(opt);
             });
           })
-          .catch(err => console.error('Error fetching available times:', err));
+          .catch(err => {
+            console.error('Error fetching times:', err);
+            timeSelect.innerHTML = '<option value="">(Could not load times)</option>';
+          });
       });
 
-      /*
-       * 3) SUBMIT BOOKING via "107485b5..." (POST)
-       * 
-       * We'll assume your n8n workflow on that endpoint can accept POST data 
-       * to save the booking: name, phone, email, service, date, time, barber.
-       */
+      // 2) Submit booking via POST
       document.getElementById('appointmentForm').addEventListener('submit', function(event) {
         event.preventDefault();
 
         const appointmentData = {
-          name: document.getElementById('name').value,
-          phone: document.getElementById('phone').value,
-          email: document.getElementById('email').value,
+          name: document.getElementById('name').value.trim(),
+          phone: document.getElementById('phone').value.trim(),
+          email: document.getElementById('email').value.trim(),
           service: document.getElementById('service').value,
-          date: document.getElementById('date').value,
-          time: document.getElementById('time').value,
-          barber: "Michael"
+          date: document.getElementById('date').value.trim(),
+          time: document.getElementById('time').value.trim(),
+          barber: 'Michael'
         };
 
+        // *** POST Endpoint: Book an appointment
         fetch('https://bitethatthing.app.n8n.cloud/webhook/107485b5-3b46-4dc8-8c05-c06a7a7e91fe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -146,12 +218,15 @@
         })
         .then(response => response.json())
         .then(data => {
+          // Basic success message (adjust as needed)
           alert('Appointment booked successfully!');
           document.getElementById('appointmentForm').reset();
+          // Reset the 'Available Times' select
+          timeSelect.innerHTML = '<option value=\"\">(Pick a date above)</option>';
         })
         .catch(error => {
-          alert('Error booking appointment');
-          console.error('Error:', error);
+          alert('Error booking appointment. Please try again.');
+          console.error('Booking error:', error);
         });
       });
     });
