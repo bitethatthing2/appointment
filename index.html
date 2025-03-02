@@ -181,6 +181,27 @@
             margin-bottom: 5px;
         }
         
+        option:disabled {
+            color: #999;
+            background-color: #f5f5f5;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0,0,0,.1);
+            border-radius: 50%;
+            border-top-color: #3498db;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
         /* Responsive styles */
         @media (min-width: 768px) {
             .form-row {
@@ -281,7 +302,7 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="time">Appointment Time:</label>
+                    <label for="time">Appointment Time: <span id="checkingAvailability" style="display:none;"><span class="loading"></span> Checking availability...</span></label>
                     <select id="time" name="time" required>
                         <option value="">Select a date first</option>
                     </select>
@@ -336,6 +357,7 @@
             // Date selection check
             const dateInput = document.getElementById('date');
             const timeSelect = document.getElementById('time');
+            const checkingAvailability = document.getElementById('checkingAvailability');
             
             dateInput.addEventListener('change', function() {
                 const selectedDate = new Date(this.value);
@@ -355,24 +377,132 @@
                     return;
                 }
                 
-                updateAvailableTimes();
+                // Check booked appointments
+                checkBookedAppointments();
             });
             
+            // Function to check for booked appointments using webhook
+            function checkBookedAppointments() {
+                const selectedDate = dateInput.value;
+                
+                if (!selectedDate) return;
+                
+                // Show loading indicator
+                checkingAvailability.style.display = 'inline-block';
+                timeSelect.innerHTML = '<option value="">Loading available times...</option>';
+                
+                // First generate base time slots
+                updateAvailableTimes(false);
+                
+                // Then check availability from the API
+                fetch(`https://bitethatthing.app.n8n.cloud/webhook/f877d285-d1ac-4e32-83e1-2320a4e69957?date=${selectedDate}&barber=Michael`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Hide loading indicator
+                        checkingAvailability.style.display = 'none';
+                        
+                        console.log("API Response:", data);
+                        
+                        // Check if we have booked times
+                        if (data.bookedTimes && data.bookedTimes.length > 0) {
+                            console.log("Booked times:", data.bookedTimes);
+                            
+                            // Loop through all time options
+                            Array.from(timeSelect.options).forEach(option => {
+                                if (option.value === '') return; // Skip the placeholder option
+                                
+                                // Format option value for comparison (12-hour format to 24-hour if needed)
+                                const optionTime = option.value;
+                                const optionDisplay = option.textContent;
+                                
+                                // Check all possible formats for matching
+                                const isBooked = data.bookedTimes.some(bookedTime => {
+                                    // Clean the booked time string
+                                    const cleanedBookedTime = bookedTime.trim();
+                                    
+                                    // Try different formats for comparison
+                                    return (
+                                        cleanedBookedTime === optionTime ||
+                                        cleanedBookedTime === optionDisplay ||
+                                        convertTo12Hour(cleanedBookedTime) === optionDisplay ||
+                                        convertTo24Hour(cleanedBookedTime) === optionTime
+                                    );
+                                });
+                                
+                                if (isBooked) {
+                                    option.disabled = true;
+                                    option.textContent += " (Booked)";
+                                }
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error checking availability:", error);
+                        // Hide loading indicator
+                        checkingAvailability.style.display = 'none';
+                    });
+            }
+            
+            // Helper function to convert 24-hour time to 12-hour time
+            function convertTo12Hour(time24) {
+                // Handle various input formats
+                let hours, minutes;
+                
+                if (time24.includes(':')) {
+                    [hours, minutes] = time24.split(':').map(part => parseInt(part, 10));
+                } else if (time24.match(/^\d{1,2}(:\d{2})?\s*(am|pm)$/i)) {
+                    // Already in 12-hour format
+                    return time24;
+                } else {
+                    return time24; // Can't parse, return as is
+                }
+                
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12; // Convert 0 to 12
+                
+                return `${hours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+            }
+            
+            // Helper function to convert 12-hour time to 24-hour time
+            function convertTo24Hour(time12) {
+                if (!time12.match(/\d{1,2}:\d{2}\s*(am|pm)/i)) {
+                    // If not in 12-hour format, return as is
+                    return time12;
+                }
+                
+                const timeMatch = time12.match(/(\d{1,2}):(\d{2})\s*(am|pm)/i);
+                if (!timeMatch) return time12;
+                
+                let [_, hours, minutes, ampm] = timeMatch;
+                hours = parseInt(hours, 10);
+                
+                if (ampm.toLowerCase() === 'pm' && hours < 12) {
+                    hours += 12;
+                } else if (ampm.toLowerCase() === 'am' && hours === 12) {
+                    hours = 0;
+                }
+                
+                return `${hours.toString().padStart(2, '0')}:${minutes}`;
+            }
+            
             // Update available times based on day
-            function updateAvailableTimes() {
+            function updateAvailableTimes(clearFirst = true) {
                 if (!dateInput.value) return;
                 
                 const selectedDate = new Date(dateInput.value);
                 const dayOfWeek = selectedDate.getDay();
                 
-                // Clear all options
-                timeSelect.innerHTML = '';
-                
-                // Add default option
-                const defaultOption = document.createElement('option');
-                defaultOption.value = '';
-                defaultOption.textContent = 'Select a time';
-                timeSelect.appendChild(defaultOption);
+                // Clear options if requested
+                if (clearFirst) {
+                    timeSelect.innerHTML = '';
+                    
+                    // Add default option
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = 'Select a time';
+                    timeSelect.appendChild(defaultOption);
+                }
                 
                 // Set hours based on day
                 let startHour = 10; // Default weekday start for Michael (10 AM)
@@ -394,39 +524,23 @@
                         const ampm = hour >= 12 ? 'PM' : 'AM';
                         const displayTime = `${displayHour}:${minute.toString().padStart(2, '0')} ${ampm}`;
                         
-                        const option = document.createElement('option');
-                        option.value = timeValue;
-                        option.textContent = displayTime;
-                        timeSelect.appendChild(option);
-                    }
-                }
-                
-                // Here we would check for already booked appointments and disable those times
-                // This would require an API call to fetch existing appointments
-                checkBookedAppointments();
-            }
-            
-            // Function to check for booked appointments
-            function checkBookedAppointments() {
-                // This would be replaced with an actual API call to your system
-                console.log("Checking for booked appointments...");
-                
-                // Example of how you would disable booked times
-                // The implementation would depend on your actual booking system
-                /*
-                fetch('/api/check-availability?date=' + dateInput.value)
-                    .then(response => response.json())
-                    .then(data => {
-                        // data.bookedTimes would contain times already booked
-                        data.bookedTimes.forEach(time => {
-                            const option = timeSelect.querySelector(`option[value="${time}"]`);
-                            if (option) {
-                                option.disabled = true;
-                                option.textContent += " (Booked)";
+                        // Check if this option already exists (for when adding to existing options)
+                        let optionExists = false;
+                        Array.from(timeSelect.options).forEach(existingOption => {
+                            if (existingOption.value === timeValue) {
+                                optionExists = true;
                             }
                         });
-                    });
-                */
+                        
+                        // Only add if it doesn't exist already
+                        if (!optionExists) {
+                            const option = document.createElement('option');
+                            option.value = timeValue;
+                            option.textContent = displayTime;
+                            timeSelect.appendChild(option);
+                        }
+                    }
+                }
             }
             
             // Form submission
@@ -459,6 +573,13 @@
                 // Validate Michael's schedule
                 if (![1, 4, 5, 6].includes(dayOfWeek)) {
                     alert('Michael is only available on Mondays, Thursdays, Fridays, and Saturdays. Please select another day.');
+                    return;
+                }
+                
+                // Check if the selected time option is disabled (already booked)
+                const selectedOption = Array.from(timeSelect.options).find(option => option.value === time);
+                if (selectedOption && selectedOption.disabled) {
+                    alert('This time is already booked. Please select a different time.');
                     return;
                 }
 
