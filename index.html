@@ -59,11 +59,7 @@
       border-color: #3498db;
     }
 
-    form select#time {
-      margin-bottom: 10px;
-    }
-
-    form button[type="submit"] {
+    form button {
       display: block;
       width: 100%;
       padding: 12px;
@@ -78,7 +74,7 @@
       transition: background-color 0.3s;
     }
 
-    form button[type="submit"]:hover {
+    form button:hover {
       background-color: #1a252f;
     }
 
@@ -87,12 +83,6 @@
       .container {
         margin: 20px auto;
         padding: 15px;
-      }
-      form label {
-        margin: 10px 0 3px;
-      }
-      form button[type="submit"] {
-        margin-top: 15px;
       }
     }
   </style>
@@ -106,45 +96,23 @@
     </p>
 
     <form id="appointmentForm">
-      <!-- 1) User picks date -->
       <label for="date">Appointment Date:</label>
       <input type="date" id="date" name="date" required />
 
-      <!-- 2) Display times once date is chosen -->
       <label for="time">Available Times:</label>
       <select id="time" name="time" required>
         <option value="">(Pick a date above)</option>
       </select>
 
-      <!-- 3) Personal Details -->
       <label for="name">Full Name:</label>
-      <input 
-        type="text" 
-        id="name" 
-        name="name" 
-        placeholder="e.g., John Doe" 
-        required 
-      />
+      <input type="text" id="name" name="name" placeholder="e.g., John Doe" required />
 
       <label for="phone">Phone Number:</label>
-      <input
-        type="text"
-        id="phone"
-        name="phone"
-        placeholder="e.g., 555-123-4567"
-        required
-      />
+      <input type="text" id="phone" name="phone" placeholder="e.g., 555-123-4567" required />
 
       <label for="email">Email Address:</label>
-      <input
-        type="email"
-        id="email"
-        name="email"
-        placeholder="yourname@example.com"
-        required
-      />
+      <input type="email" id="email" name="email" placeholder="yourname@example.com" required />
 
-      <!-- 4) Service Dropdown -->
       <label for="service">Select Your Service:</label>
       <select id="service" name="service" required>
         <option value="" hidden disabled selected>(Choose a service)</option>
@@ -153,7 +121,6 @@
         <option value="Hot Towel Shave">Hot Towel Shave - $40</option>
       </select>
 
-      <!-- 5) Submit Button -->
       <button type="submit">Book My Appointment</button>
     </form>
   </div>
@@ -163,26 +130,23 @@
       const dateInput = document.getElementById('date');
       const timeSelect = document.getElementById('time');
 
-      // 1) When date changes, fetch times from GET endpoint
+      const corsProxy = "https://cors-anywhere.herokuapp.com/"; // Use public proxy or deploy your own
+
+      // 1) Fetch available times when date is selected
       dateInput.addEventListener('change', function() {
         const selectedDate = dateInput.value.trim();
         if (!selectedDate) return;
 
-        // Clear old options
         timeSelect.innerHTML = '<option value="">Loading available times...</option>';
 
-        // *** GET Endpoint: Fetch times for the chosen date
-        fetch(`https://bitethatthing.app.n8n.cloud/webhook/9c6e7372-2a6a-4ebe-8c77-788f1378ecde?date=${selectedDate}&barber=Michael`)
+        fetch(`${corsProxy}https://bitethatthing.app.n8n.cloud/webhook/9c6e7372-2a6a-4ebe-8c77-788f1378ecde?date=${selectedDate}&barber=Michael`)
           .then(response => response.json())
           .then(data => {
-            timeSelect.innerHTML = '<option value=\"\">(Select a time)</option>';
+            timeSelect.innerHTML = '<option value="">(Select a time)</option>';
             if (!data.availableTimes) {
-              // In case there's no 'availableTimes' key
               console.warn('No availableTimes found in response.');
               return;
             }
-
-            // Populate dropdown with returned times
             data.availableTimes.forEach(time => {
               let opt = document.createElement('option');
               opt.value = time;
@@ -196,7 +160,7 @@
           });
       });
 
-      // 2) Submit booking via POST
+      // 2) Submit appointment booking
       document.getElementById('appointmentForm').addEventListener('submit', function(event) {
         event.preventDefault();
 
@@ -210,19 +174,16 @@
           barber: 'Michael'
         };
 
-        // *** POST Endpoint: Book an appointment
-        fetch('https://bitethatthing.app.n8n.cloud/webhook/107485b5-3b46-4dc8-8c05-c06a7a7e91fe', {
+        fetch(`${corsProxy}https://bitethatthing.app.n8n.cloud/webhook/107485b5-3b46-4dc8-8c05-c06a7a7e91fe`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(appointmentData)
         })
         .then(response => response.json())
         .then(data => {
-          // Basic success message (adjust as needed)
           alert('Appointment booked successfully!');
           document.getElementById('appointmentForm').reset();
-          // Reset the 'Available Times' select
-          timeSelect.innerHTML = '<option value=\"\">(Pick a date above)</option>';
+          timeSelect.innerHTML = '<option value="">(Pick a date above)</option>';
         })
         .catch(error => {
           alert('Error booking appointment. Please try again.');
