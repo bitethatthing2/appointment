@@ -1,0 +1,23 @@
+{
+  "display": "form",
+  "components": [
+    {
+      "type": "textfield",
+      "label": "Customer Name",
+      "key": "customerName",
+      "input": true,
+      "placeholder": "Enter your name"
+    },
+    {
+      "type": "datetime",
+      "label": "Date & Time",
+      "key": "date",
+      "input": true,
+      "format": "yyyy-MM-dd hh:mm a",
+      "placeholder": "Select date and time",
+      "validate": {
+        "custom": "var d = new Date(input); var day = d.getDay(); var hour = d.getHours();\n// Allowed days: Monday (1), Thursday (4), Friday (5), Saturday (6)\nif ((day === 1 || day === 4 || day === 5 || day === 6) && (hour >= 10 && hour < 19)) { \n  valid = true; \n} else { \n  valid = 'Please choose a date on Monday, Thursday, Friday, or Saturday between 10 AM and 7 PM.'; \n}"
+      }
+    }
+  ]
+}
