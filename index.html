@@ -12,7 +12,6 @@
       font-family: Arial, sans-serif;
       color: #333;
     }
-
     /* Container & Header */
     .container {
       max-width: 600px;
@@ -22,27 +21,23 @@
       box-shadow: 0 0 15px rgba(0,0,0,0.1);
       border-radius: 8px;
     }
-
     h1 {
       text-align: center;
       color: #2c3e50;
       margin-bottom: 15px;
     }
-
     p.note {
       font-size: 0.9em;
       color: #666;
       margin-bottom: 20px;
       line-height: 1.4;
     }
-
     /* Form Fields */
     form label {
       display: block;
       font-weight: bold;
       margin: 15px 0 5px;
     }
-
     form input,
     form select {
       width: 100%;
@@ -52,13 +47,11 @@
       border-radius: 6px;
       box-sizing: border-box;
     }
-
     form input:focus,
     form select:focus {
       outline: none;
       border-color: #3498db;
     }
-
     form button {
       display: block;
       width: 100%;
@@ -73,11 +66,9 @@
       margin-top: 20px;
       transition: background-color 0.3s;
     }
-
     form button:hover {
       background-color: #1a252f;
     }
-
     /* Responsive */
     @media (max-width: 480px) {
       .container {
@@ -91,7 +82,7 @@
   <div class="container">
     <h1>Book with Michael</h1>
     <p class="note">
-      Welcome! Please select a date first to see all available times for that day. 
+      Welcome! Please select a date first to see all available times for that day.
       Then fill out your details, choose a service, and book your appointment.
     </p>
 
@@ -130,16 +121,14 @@
       const dateInput = document.getElementById('date');
       const timeSelect = document.getElementById('time');
 
-      const corsProxy = "https://cors-anywhere.herokuapp.com/"; // Use public proxy or deploy your own
-
       // 1) Fetch available times when date is selected
       dateInput.addEventListener('change', function() {
         const selectedDate = dateInput.value.trim();
         if (!selectedDate) return;
-
         timeSelect.innerHTML = '<option value="">Loading available times...</option>';
 
-        fetch(`${corsProxy}https://bitethatthing.app.n8n.cloud/webhook/9c6e7372-2a6a-4ebe-8c77-788f1378ecde?date=${selectedDate}&barber=Michael`)
+        // Direct fetch without CORS proxy
+        fetch(`https://bitethatthing.app.n8n.cloud/webhook/9c6e7372-2a6a-4ebe-8c77-788f1378ecde?date=${selectedDate}&barber=Michael`)
           .then(response => response.json())
           .then(data => {
             timeSelect.innerHTML = '<option value="">(Select a time)</option>';
@@ -174,7 +163,7 @@
           barber: 'Michael'
         };
 
-        fetch(`${corsProxy}https://bitethatthing.app.n8n.cloud/webhook/107485b5-3b46-4dc8-8c05-c06a7a7e91fe`, {
+        fetch('https://bitethatthing.app.n8n.cloud/webhook/107485b5-3b46-4dc8-8c05-c06a7a7e91fe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(appointmentData)
